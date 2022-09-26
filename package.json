@@ -12,9 +12,11 @@
     "test": "npx jest"
   },
   "dependencies": {
-    "@actions/core": "^1.9.1"
+    "@actions/core": "^1.9.1",
+    "@octokit/core": "^4.0.5"
   },
   "devDependencies": {
+    "@octokit/types": "^7.5.0",
     "@types/jest": "^29.0.3",
     "@types/node": "^18.7.21",
     "@vercel/ncc": "^0.34.0",
