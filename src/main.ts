@@ -1,6 +1,8 @@
 import * as core from '@actions/core'
 import { Octokit } from "@octokit/core"
 import { getLabels } from './getLabels'
+import { searchPRwithLabels } from './searchPRwithLabels'
+import { searchCodePR } from './searchCodePR'
 
 interface Input {
     prNumber: string
@@ -21,5 +23,20 @@ export const main = (input: Input): void => {
         auth: process.env.GITHUB_TOKEN
     })
 
-    const labels = getLabels(octokit, prNumber, repoName, owner)
+    getLabels(octokit, prNumber, repoName, owner).then((labels) => {
+        core.info(`Labels: ${labels}`)
+        searchPRwithLabels(octokit, repoName, owner, labels).then((PRs) => {
+            core.info(`PRs: ${PRs}`)
+            if (PRs.length > 0) {
+                core.info('PRs found, nothing to merge')
+                core.ExitCode.Success
+            } else {
+                core.info('No PRs found, merge original code PR')
+                searchCodePR(octokit, prNumber, repoName, owner).then((codePR) => {
+                    core.info(`Code PR: ${codePR?.number}`)
+                    core.ExitCode.Success
+                })
+            }
+        })
+    })
 }
