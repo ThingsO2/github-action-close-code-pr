@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import { Octokit } from "@octokit/core"
 import { Endpoints } from "@octokit/types"
 
@@ -19,6 +20,7 @@ export async function searchCodePR(octokit: Octokit, prNumber: string, repoName:
             }
         }
     }
+    core.error(`Error: ${res}`)
     return undefined
 }
 

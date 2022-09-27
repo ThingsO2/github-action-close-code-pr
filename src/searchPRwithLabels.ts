@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import { Octokit } from "@octokit/core"
 import { Endpoints } from "@octokit/types"
 
@@ -10,6 +11,7 @@ export async function searchPRwithLabels(octokit: Octokit, repoName: string, own
     if (res.status === 200) {
         return res.data.map((issue) => issue.number)
     }
+    core.error(`Error: ${res}`)
     return undefined
 }
 

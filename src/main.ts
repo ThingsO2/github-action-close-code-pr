@@ -3,6 +3,7 @@ import { Octokit } from "@octokit/core"
 import { getLabels } from './getLabels'
 import { searchPRwithLabels } from './searchPRwithLabels'
 import { searchCodePR } from './searchCodePR'
+import { mergePR } from './mergePR'
 
 interface Input {
     prNumber: string
@@ -25,16 +26,31 @@ export const main = (input: Input): void => {
 
     getLabels(octokit, prNumber, repoName, owner).then((labels) => {
         core.info(`Labels: ${labels}`)
+        if (labels === undefined) {
+            core.setFailed(`Request label failed`)
+        }
         searchPRwithLabels(octokit, repoName, owner, labels).then((PRs) => {
             core.info(`PRs: ${PRs}`)
+            if (PRs === undefined) {
+                core.setFailed(`Request PRs failed`)
+            }
             if (PRs.length > 0) {
                 core.info('PRs found, nothing to merge')
                 core.ExitCode.Success
             } else {
                 core.info('No PRs found, merge original code PR')
                 searchCodePR(octokit, prNumber, repoName, owner).then((codePR) => {
-                    core.info(`Code PR: ${codePR?.number}`)
-                    core.ExitCode.Success
+                    core.info(`Repo: ${codePR.base.repo.name} PR: ${codePR?.number}`)
+                    if (codePR === undefined) {
+                        core.setFailed(`Request code PR failed`)
+                    }
+                    mergePR(octokit, codePR.number.toString(), codePR.base.repo.name, owner).then((mergeResult) => {
+                        core.info(`Merge Result: ${mergeResult}`)
+                        if (mergeResult === undefined) {
+                            core.setFailed(`Merge PR failed`)
+                        }
+                        core.ExitCode.Success
+                    })
                 })
             }
         })
