@@ -1,3 +1,4 @@
+jest.mock('@actions/core')
 import { Octokit } from "@octokit/core"
 import { getLabels } from '../src/getLabels'
 
@@ -19,6 +20,11 @@ test('get labels', async () => {
 })
 
 test('get labels not found', async () => {
+    const labels = await getLabels(octokit, '99999', repoName, owner)
+    expect(labels).toBeUndefined()
+})
+
+test('get labels error', async () => {
     const labels = await getLabels(nooctokit, prNumber, repoName, owner)
     expect(labels).toBeUndefined()
 })
