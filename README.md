@@ -1,1 +1,1 @@
-# template-github-base
+# github-action-close-code-pr
