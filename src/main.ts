@@ -26,7 +26,9 @@ export const main = (octokit: Octokit, input: Input, merge: boolean): Promise<co
             core.setFailed(`Request label failed`)
             return core.ExitCode.Failure
         }
-        return searchPRwithLabels(octokit, repoName, owner, labels).then((PRs) => {
+        // Remove *-pro labels from the list
+        const labelsToSearch = labels.filter((label) => !label.endsWith("-pro"))
+        return searchPRwithLabels(octokit, repoName, owner, labelsToSearch).then((PRs) => {
             core.info(`PRs: ${PRs}`)
             if (PRs === undefined) {
                 core.setFailed(`Request PRs failed`)
