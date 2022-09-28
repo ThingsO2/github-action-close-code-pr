@@ -4,7 +4,7 @@ import { Endpoints } from "@octokit/types"
 
 type mergePR = Endpoints["PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge"]["response"]
 
-export async function mergePR(octokit: Octokit, prNumber: string, repoName: string, owner: string): Promise<mergePR['data'] | undefined> {
+export async function mergePR(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<mergePR['data'] | undefined> {
 
     const res = await doRequest(octokit, prNumber, repoName, owner)
 
@@ -15,8 +15,8 @@ export async function mergePR(octokit: Octokit, prNumber: string, repoName: stri
     return undefined
 }
 
-async function doRequest(octokit: Octokit, prNumber: string, repoName: string, owner: string): Promise<mergePR> {
-    const request = `PUT /repos/${owner}/${repoName}/pulls/${prNumber}/merge`
+async function doRequest(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<mergePR> {
+    const request = "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge"
 
     try {
         const { data: res } = await octokit.request(request, {

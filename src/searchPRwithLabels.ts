@@ -16,13 +16,14 @@ export async function searchPRwithLabels(octokit: Octokit, repoName: string, own
 }
 
 async function doRequest(octokit: Octokit, repoName: string, owner: string, labels: string[]): Promise<listIssues> {
-    const request = `GET /repos/${owner}/${repoName}/issues`
+
+    const request = "GET /repos/{owner}/{repo}/issues"
 
     try {
         const {data: res } = await octokit.request(request, {
             owner: owner,
             repo: repoName,
-            labels: labels
+            labels: labels.join(","),
           })
         return {
             data: res,

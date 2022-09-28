@@ -10,7 +10,7 @@ const nooctokit = new Octokit({
     auth: '1234567890'
 })
 
-const prNumber = '6'
+const prNumber = 6
 const repoName = 'github-action-close-code-pr'
 const owner = 'ThingsO2'
 
@@ -22,7 +22,7 @@ test('merge PR', async () => {
 })
 
 test('merge PR already merged', async () => {
-    const mergeResult = await mergePR(octokit, '5', repoName, owner)
+    const mergeResult = await mergePR(octokit, 5, repoName, owner)
     expect(mergeResult).toBeUndefined()
 })
 

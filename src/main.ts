@@ -6,7 +6,7 @@ import { searchCodePR } from './searchCodePR'
 import { mergePR } from './mergePR'
 
 interface Input {
-    prNumber: string
+    prNumber: number
     repoName: string
     owner: string
 }
@@ -44,10 +44,11 @@ export const main = (octokit: Octokit, input: Input, merge: boolean): Promise<co
                         return core.ExitCode.Failure
                     }
                     if (merge) {
-                        return mergePR(octokit, codePR.number.toString(), codePR.base.repo.name, owner).then((mergeResult) => {
+                        return mergePR(octokit, codePR.number, codePR.base.repo.name, owner).then((mergeResult) => {
                             core.info(`Merge Result: ${mergeResult}`)
                             if (mergeResult === undefined) {
                                 core.setFailed(`Merge PR failed`)
+                                return core.ExitCode.Failure
                             }
                             return core.ExitCode.Success
                         })
@@ -60,7 +61,7 @@ export const main = (octokit: Octokit, input: Input, merge: boolean): Promise<co
 }
 
 try {
-    const prNumber = core.getInput('pr_number')
+    const prNumber = parseInt(core.getInput('pr_number'))
     const repoName = core.getInput('repo_name')
     const owner = core.getInput('owner')
 

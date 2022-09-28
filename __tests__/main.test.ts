@@ -12,7 +12,7 @@ const nooctokit = new Octokit({
 })
 
 const input = {
-    prNumber: '135',
+    prNumber: 135,
     repoName: 'monom-manifests',
     owner: 'ThingsO2'
 }

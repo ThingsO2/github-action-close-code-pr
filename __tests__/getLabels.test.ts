@@ -10,7 +10,7 @@ const nooctokit = new Octokit({
     auth: '1234567890'
 })
 
-const prNumber = '15'
+const prNumber = 15
 const repoName = 'monom-manifests'
 const owner = 'ThingsO2'
 
@@ -20,7 +20,7 @@ test('get labels', async () => {
 })
 
 test('get labels not found', async () => {
-    const labels = await getLabels(octokit, '99999', repoName, owner)
+    const labels = await getLabels(octokit, 99999, repoName, owner)
     expect(labels).toBeUndefined()
 })
 

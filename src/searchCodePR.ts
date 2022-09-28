@@ -4,7 +4,7 @@ import { Endpoints } from "@octokit/types"
 
 type pullRequest = Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}"]["response"]
 
-export async function searchCodePR(octokit: Octokit, prNumber: string, repoName: string, owner: string): Promise<pullRequest['data'] | undefined> {
+export async function searchCodePR(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<pullRequest['data'] | undefined> {
 
     const res = await doRequest(octokit, prNumber, repoName, owner)
 
@@ -13,7 +13,7 @@ export async function searchCodePR(octokit: Octokit, prNumber: string, repoName:
         const match = res.data.title.match(re)
         if (match) {
             const originalRepoName = match[1]
-            const originalPrNumber = match[3]
+            const originalPrNumber = parseInt(match[3])
             const original = await doRequest(octokit, originalPrNumber, originalRepoName, owner)
             if (original.status === 200) {
                 return original.data
@@ -24,8 +24,8 @@ export async function searchCodePR(octokit: Octokit, prNumber: string, repoName:
     return undefined
 }
 
-async function doRequest(octokit: Octokit, prNumber: string, repoName: string, owner: string): Promise<pullRequest> {
-    const request = `GET /repos/${owner}/${repoName}/pulls/${prNumber}`
+async function doRequest(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<pullRequest> {
+    const request = "GET /repos/{owner}/{repo}/pulls/{pull_number}"
 
     try {
         const {data: res } = await octokit.request(request, {

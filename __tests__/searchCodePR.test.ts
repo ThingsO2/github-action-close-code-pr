@@ -10,7 +10,7 @@ const nooctokit = new Octokit({
     auth: '1234567890'
 })
 
-const prNumber = '135'
+const prNumber = 135
 const repoName = 'monom-manifests'
 const owner = 'ThingsO2'
 
@@ -22,7 +22,7 @@ test('search code PR', async () => {
 })
 
 test('search code PR not found', async () => {
-    const res = await searchCodePR(octokit, '15', repoName, owner)
+    const res = await searchCodePR(octokit, 15, repoName, owner)
     expect(res).toBeUndefined()
 })
 
