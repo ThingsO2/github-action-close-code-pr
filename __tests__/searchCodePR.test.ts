@@ -14,9 +14,19 @@ const prNumber = '135'
 const repoName = 'monom-manifests'
 const owner = 'ThingsO2'
 
-test('searchCodePR', async () => {
+test('search code PR', async () => {
     const res = await searchCodePR(octokit, prNumber, repoName, owner)
     expect(res).toBeDefined()
     expect(res?.number).toBe(36)
     expect(res?.head.repo.name).toBe('dp-monom-2-awm')
+})
+
+test('search code PR not found', async () => {
+    const res = await searchCodePR(octokit, '15', repoName, owner)
+    expect(res).toBeUndefined()
+})
+
+test('search code PR error', async () => {
+    const res = await searchCodePR(nooctokit, prNumber, repoName, owner)
+    expect(res).toBeUndefined()
 })
