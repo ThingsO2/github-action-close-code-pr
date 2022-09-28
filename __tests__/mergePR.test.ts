@@ -10,7 +10,7 @@ const nooctokit = new Octokit({
     auth: '1234567890'
 })
 
-const prNumber = '2'
+const prNumber = '5'
 const repoName = 'github-action-close-code-pr'
 const owner = 'ThingsO2'
 

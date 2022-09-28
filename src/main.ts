@@ -8,7 +8,7 @@ import { mergePR } from './mergePR'
 interface Input {
     prNumber: string
     repoName: string
-    owner: 'ThingsO2'
+    owner: string
 }
 
 export const main = (input: Input): void => {
@@ -44,15 +44,24 @@ export const main = (input: Input): void => {
                     if (codePR === undefined) {
                         core.setFailed(`Request code PR failed`)
                     }
-                    mergePR(octokit, codePR.number.toString(), codePR.base.repo.name, owner).then((mergeResult) => {
-                        core.info(`Merge Result: ${mergeResult}`)
-                        if (mergeResult === undefined) {
-                            core.setFailed(`Merge PR failed`)
-                        }
-                        core.ExitCode.Success
-                    })
+                    //mergePR(octokit, codePR.number.toString(), codePR.base.repo.name, owner).then((mergeResult) => {
+                    //    core.info(`Merge Result: ${mergeResult}`)
+                    //    if (mergeResult === undefined) {
+                    //        core.setFailed(`Merge PR failed`)
+                    //    }
+                    //    core.ExitCode.Success
+                    //})
                 })
             }
         })
     })
+}
+
+try {
+    const prNumber = core.getInput('pr_number')
+    const repoName = core.getInput('repo_name')
+    const owner = core.getInput('owner')
+    main({ prNumber, repoName, owner })
+} catch (error) {
+    core.setFailed(error.message)
 }

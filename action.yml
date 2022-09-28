@@ -1,0 +1,18 @@
+name: 'Close the original code PR when the app is deployed'
+description: 'Close the original code PR when the app is deployed'
+inputs:
+  pr_number:
+    description: 'The PR number to close'
+    required: true
+  repo_name:
+    description: 'The repo name'
+    required: true
+  owner:
+    description: 'The repo owner'
+    required: true
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+branding:
+  icon: 'lock'
+  color: 'gray-dark'
