@@ -7949,7 +7949,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLabels = void 0;
-var core = __nccwpck_require__(2186);
+var request_error_1 = __nccwpck_require__(537);
 function getLabels(octokit, prNumber, repoName, owner) {
     return __awaiter(this, void 0, void 0, function () {
         var res;
@@ -7958,10 +7958,12 @@ function getLabels(octokit, prNumber, repoName, owner) {
                 case 0: return [4 /*yield*/, doRequest(octokit, prNumber, repoName, owner)];
                 case 1:
                     res = _a.sent();
+                    if (res instanceof request_error_1.RequestError) {
+                        throw res;
+                    }
                     if (res.status === 200) {
                         return [2 /*return*/, res.data.map(function (label) { return label.name; })];
                     }
-                    core.error("Error: ".concat(res));
                     return [2 /*return*/, undefined];
             }
         });
@@ -7974,7 +7976,7 @@ function doRequest(octokit, prNumber, repoName, owner) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    request = "GET /repos/".concat(owner, "/").concat(repoName, "/issues/").concat(prNumber, "/labels");
+                    request = "GET /repos/{owner}/{repo}/issues/{issue_number}/labels";
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
@@ -7993,7 +7995,10 @@ function doRequest(octokit, prNumber, repoName, owner) {
                         }];
                 case 3:
                     error_1 = _a.sent();
-                    return [2 /*return*/, error_1];
+                    return [2 /*return*/, new request_error_1.RequestError(error_1.message, error_1.status, {
+                            request: error_1.request,
+                            response: error_1.response,
+                        })];
                 case 4: return [2 /*return*/];
             }
         });
@@ -8004,10 +8009,46 @@ function doRequest(octokit, prNumber, repoName, owner) {
 /***/ }),
 
 /***/ 399:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.main = void 0;
 var core = __nccwpck_require__(2186);
@@ -8016,60 +8057,68 @@ var getLabels_1 = __nccwpck_require__(7140);
 var searchPRwithLabels_1 = __nccwpck_require__(3595);
 var searchCodePR_1 = __nccwpck_require__(5433);
 var mergePR_1 = __nccwpck_require__(6964);
-var main = function (octokit, input, merge) {
-    var prNumber = input.prNumber;
-    var repoName = input.repoName;
-    var owner = input.owner;
-    core.info("PR Number: ".concat(prNumber));
-    core.info("Repo Name: ".concat(repoName));
-    return (0, getLabels_1.getLabels)(octokit, prNumber, repoName, owner).then(function (labels) {
-        core.info("Labels: ".concat(labels));
-        if (labels === undefined) {
-            core.setFailed("Request label failed");
-            return core.ExitCode.Failure;
-        }
-        return (0, searchPRwithLabels_1.searchPRwithLabels)(octokit, repoName, owner, labels).then(function (PRs) {
-            core.info("PRs: ".concat(PRs));
-            if (PRs === undefined) {
-                core.setFailed("Request PRs failed");
-                return core.ExitCode.Failure;
-            }
-            if (PRs.length > 0) {
-                core.info('PRs found, nothing to merge');
-                return core.ExitCode.Success;
-            }
-            else {
-                core.info('No PRs found, merge original code PR');
-                return (0, searchCodePR_1.searchCodePR)(octokit, prNumber, repoName, owner).then(function (codePR) {
+function main(octokit, input, merge) {
+    return __awaiter(this, void 0, void 0, function () {
+        var prNumber, repoName, owner, labels, labelsToSearch, PRs, codePR, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    prNumber = input.prNumber;
+                    repoName = input.repoName;
+                    owner = input.owner;
+                    core.info("PR Number: ".concat(prNumber));
+                    core.info("Repo Name: ".concat(repoName));
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 7, , 8]);
+                    return [4 /*yield*/, (0, getLabels_1.getLabels)(octokit, prNumber, repoName, owner)];
+                case 2:
+                    labels = _a.sent();
+                    core.info("Labels: ".concat(labels));
+                    labelsToSearch = labels.filter(function (label) { return !label.endsWith("-pro"); });
+                    return [4 /*yield*/, (0, searchPRwithLabels_1.searchPRwithLabels)(octokit, repoName, owner, labelsToSearch)];
+                case 3:
+                    PRs = _a.sent();
+                    core.info("PRs: ".concat(PRs));
+                    if (!(PRs.length > 0)) return [3 /*break*/, 4];
+                    core.info('PRs found, nothing to merge');
+                    return [2 /*return*/, core.ExitCode.Success];
+                case 4:
+                    core.info('No PRs found, merge original code PR');
+                    return [4 /*yield*/, (0, searchCodePR_1.searchCodePR)(octokit, prNumber, repoName, owner)];
+                case 5:
+                    codePR = _a.sent();
                     core.info("Repo: ".concat(codePR.base.repo.name, " PR: ").concat(codePR === null || codePR === void 0 ? void 0 : codePR.number));
-                    if (codePR === undefined) {
-                        core.setFailed("Request code PR failed");
-                        return core.ExitCode.Failure;
-                    }
                     if (merge) {
-                        return (0, mergePR_1.mergePR)(octokit, codePR.number.toString(), codePR.base.repo.name, owner).then(function (mergeResult) {
-                            core.info("Merge Result: ".concat(mergeResult));
-                            if (mergeResult === undefined) {
-                                core.setFailed("Merge PR failed");
-                            }
-                            return core.ExitCode.Success;
-                        });
+                        return [2 /*return*/, (0, mergePR_1.mergePR)(octokit, codePR.number, codePR.base.repo.name, owner).then(function (mergeResult) {
+                                core.info("Merge Result: ".concat(mergeResult));
+                                if (mergeResult === undefined) {
+                                    core.setFailed("Merge PR failed");
+                                    return core.ExitCode.Failure;
+                                }
+                                return core.ExitCode.Success;
+                            })];
                     }
-                    return core.ExitCode.Success;
-                });
+                    return [2 /*return*/, core.ExitCode.Success];
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    error_1 = _a.sent();
+                    core.setFailed(error_1.message);
+                    return [2 /*return*/, Promise.resolve(core.ExitCode.Failure)];
+                case 8: return [2 /*return*/];
             }
         });
     });
-};
+}
 exports.main = main;
 try {
-    var prNumber = core.getInput('pr_number');
+    var prNumber = parseInt(core.getInput('pr_number'));
     var repoName = core.getInput('repo_name');
     var owner = core.getInput('owner');
     var octokit = new core_1.Octokit({
         auth: process.env.GITHUB_TOKEN
     });
-    (0, exports.main)(octokit, { prNumber: prNumber, repoName: repoName, owner: owner }, false);
+    main(octokit, { prNumber: prNumber, repoName: repoName, owner: owner }, false);
 }
 catch (error) {
     core.setFailed(error.message);
@@ -8121,7 +8170,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.mergePR = void 0;
-var core = __nccwpck_require__(2186);
+var request_error_1 = __nccwpck_require__(537);
 function mergePR(octokit, prNumber, repoName, owner) {
     return __awaiter(this, void 0, void 0, function () {
         var res;
@@ -8130,10 +8179,12 @@ function mergePR(octokit, prNumber, repoName, owner) {
                 case 0: return [4 /*yield*/, doRequest(octokit, prNumber, repoName, owner)];
                 case 1:
                     res = _a.sent();
+                    if (res instanceof request_error_1.RequestError) {
+                        throw res;
+                    }
                     if (res.status === 200) {
                         return [2 /*return*/, res.data];
                     }
-                    core.error("Error: ".concat(res));
                     return [2 /*return*/, undefined];
             }
         });
@@ -8146,7 +8197,7 @@ function doRequest(octokit, prNumber, repoName, owner) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    request = "PUT /repos/".concat(owner, "/").concat(repoName, "/pulls/").concat(prNumber, "/merge");
+                    request = "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge";
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
@@ -8165,7 +8216,10 @@ function doRequest(octokit, prNumber, repoName, owner) {
                         }];
                 case 3:
                     error_1 = _a.sent();
-                    return [2 /*return*/, error_1];
+                    return [2 /*return*/, new request_error_1.RequestError(error_1.message, error_1.status, {
+                            request: error_1.request,
+                            response: error_1.response,
+                        })];
                 case 4: return [2 /*return*/];
             }
         });
@@ -8218,7 +8272,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.searchCodePR = void 0;
-var core = __nccwpck_require__(2186);
+var request_error_1 = __nccwpck_require__(537);
 function searchCodePR(octokit, prNumber, repoName, owner) {
     return __awaiter(this, void 0, void 0, function () {
         var res, re, match, originalRepoName, originalPrNumber, original;
@@ -8227,22 +8281,26 @@ function searchCodePR(octokit, prNumber, repoName, owner) {
                 case 0: return [4 /*yield*/, doRequest(octokit, prNumber, repoName, owner)];
                 case 1:
                     res = _a.sent();
+                    if (res instanceof request_error_1.RequestError) {
+                        throw res;
+                    }
                     if (!(res.status === 200)) return [3 /*break*/, 3];
                     re = /^([a-z\-1-9]+)\s([a-z-]+)\s\#pr(\d+)$/;
                     match = res.data.title.match(re);
                     if (!match) return [3 /*break*/, 3];
                     originalRepoName = match[1];
-                    originalPrNumber = match[3];
+                    originalPrNumber = parseInt(match[3]);
                     return [4 /*yield*/, doRequest(octokit, originalPrNumber, originalRepoName, owner)];
                 case 2:
                     original = _a.sent();
+                    if (original instanceof request_error_1.RequestError) {
+                        throw res;
+                    }
                     if (original.status === 200) {
                         return [2 /*return*/, original.data];
                     }
                     _a.label = 3;
-                case 3:
-                    core.error("Error: ".concat(res));
-                    return [2 /*return*/, undefined];
+                case 3: return [2 /*return*/, undefined];
             }
         });
     });
@@ -8254,7 +8312,7 @@ function doRequest(octokit, prNumber, repoName, owner) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    request = "GET /repos/".concat(owner, "/").concat(repoName, "/pulls/").concat(prNumber);
+                    request = "GET /repos/{owner}/{repo}/pulls/{pull_number}";
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
@@ -8273,7 +8331,10 @@ function doRequest(octokit, prNumber, repoName, owner) {
                         }];
                 case 3:
                     error_1 = _a.sent();
-                    return [2 /*return*/, error_1];
+                    return [2 /*return*/, new request_error_1.RequestError(error_1.message, error_1.status, {
+                            request: error_1.request,
+                            response: error_1.response,
+                        })];
                 case 4: return [2 /*return*/];
             }
         });
@@ -8326,7 +8387,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.searchPRwithLabels = void 0;
-var core = __nccwpck_require__(2186);
+var request_error_1 = __nccwpck_require__(537);
 function searchPRwithLabels(octokit, repoName, owner, labels) {
     return __awaiter(this, void 0, void 0, function () {
         var res;
@@ -8335,10 +8396,12 @@ function searchPRwithLabels(octokit, repoName, owner, labels) {
                 case 0: return [4 /*yield*/, doRequest(octokit, repoName, owner, labels)];
                 case 1:
                     res = _a.sent();
+                    if (res instanceof request_error_1.RequestError) {
+                        throw res;
+                    }
                     if (res.status === 200) {
                         return [2 /*return*/, res.data.map(function (issue) { return issue.number; })];
                     }
-                    core.error("Error: ".concat(res));
                     return [2 /*return*/, undefined];
             }
         });
@@ -8351,14 +8414,14 @@ function doRequest(octokit, repoName, owner, labels) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    request = "GET /repos/".concat(owner, "/").concat(repoName, "/issues");
+                    request = "GET /repos/{owner}/{repo}/issues";
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
                     return [4 /*yield*/, octokit.request(request, {
                             owner: owner,
                             repo: repoName,
-                            labels: labels
+                            labels: labels.join(","),
                         })];
                 case 2:
                     res = (_a.sent()).data;
@@ -8370,7 +8433,10 @@ function doRequest(octokit, repoName, owner, labels) {
                         }];
                 case 3:
                     error_1 = _a.sent();
-                    return [2 /*return*/, error_1];
+                    return [2 /*return*/, new request_error_1.RequestError(error_1.message, error_1.status, {
+                            request: error_1.request,
+                            response: error_1.response,
+                        })];
                 case 4: return [2 /*return*/];
             }
         });
