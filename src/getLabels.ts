@@ -1,21 +1,24 @@
-import * as core from '@actions/core'
 import { Octokit } from "@octokit/core"
+import { RequestError } from "@octokit/request-error"
 import { Endpoints } from "@octokit/types"
 
 type listLabelsOnIssueResponse = Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}/labels"]["response"]
 
-export async function getLabels(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<string[] | undefined> {
+export async function getLabels(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<string[]>  {
 
     const res = await doRequest(octokit, prNumber, repoName, owner)
 
+    if (res instanceof RequestError) {
+        throw res
+    }
     if (res.status === 200) {
         return res.data.map((label) => label.name)
     }
-    core.error(`Error: ${res}`)
+
     return undefined
 }
 
-async function doRequest(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<listLabelsOnIssueResponse> {
+async function doRequest(octokit: Octokit, prNumber: number, repoName: string, owner: string): Promise<listLabelsOnIssueResponse | RequestError> {
 
     const request = "GET /repos/{owner}/{repo}/issues/{issue_number}/labels"
 
@@ -32,6 +35,9 @@ async function doRequest(octokit: Octokit, prNumber: number, repoName: string, o
             headers: {}
         }
     } catch (error) {
-        return error
+        return new RequestError(error.message, error.status, {
+            request: error.request,
+            response: error.response,
+        })
     }
 }

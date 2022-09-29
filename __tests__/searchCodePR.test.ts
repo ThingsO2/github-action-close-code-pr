@@ -22,11 +22,17 @@ test('search code PR', async () => {
 })
 
 test('search code PR not found', async () => {
-    const res = await searchCodePR(octokit, 15, repoName, owner)
-    expect(res).toBeUndefined()
+    try {
+        await searchCodePR(octokit, 15, repoName, owner)
+    } catch (error) {
+        expect(error).toHaveProperty('status', 404)
+    }
 })
 
 test('search code PR error', async () => {
-    const res = await searchCodePR(nooctokit, prNumber, repoName, owner)
-    expect(res).toBeUndefined()
+    try {
+        await searchCodePR(nooctokit, prNumber, repoName, owner)
+    } catch (error) {
+        expect(error).toHaveProperty('status', 401)
+    }
 })

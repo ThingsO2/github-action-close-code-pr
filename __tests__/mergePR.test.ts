@@ -1,5 +1,6 @@
 jest.mock('@actions/core')
 import { Octokit } from "@octokit/core"
+import { RequestError } from "@octokit/request-error"
 import { mergePR } from '../src/mergePR'
 
 const octokit = new Octokit({
@@ -10,7 +11,7 @@ const nooctokit = new Octokit({
     auth: '1234567890'
 })
 
-const prNumber = 6
+const prNumber = 7
 const repoName = 'github-action-close-code-pr'
 const owner = 'ThingsO2'
 
@@ -22,11 +23,19 @@ test('merge PR', async () => {
 })
 
 test('merge PR already merged', async () => {
-    const mergeResult = await mergePR(octokit, 5, repoName, owner)
-    expect(mergeResult).toBeUndefined()
+    try {
+        await mergePR(octokit, 5, repoName, owner)
+    } catch (error) {
+        expect(error).toBeInstanceOf(RequestError)
+        expect(error).toHaveProperty('status', 405)
+    }
 })
 
 test('merge PR no token', async () => {
-    const mergeResult = await mergePR(nooctokit, prNumber, repoName, owner)
-    expect(mergeResult).toBeUndefined()
+    try {
+        await mergePR(nooctokit, prNumber, repoName, owner)
+    } catch (error) {
+        expect(error).toBeInstanceOf(RequestError)
+        expect(error).toHaveProperty('status', 401)
+    }
 })

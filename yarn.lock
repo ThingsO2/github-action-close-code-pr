@@ -604,7 +604,7 @@
   resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-13.13.0.tgz#c9bd7fafd41984176a806938e0a56b7c39425014"
   integrity sha512-EQ7/LFp2nb1bU5vhLvfEsImi7RvGXp081ytaMRQXDyVcpLpmOCUMafYfHL72BA7wCOnEmJR0LznBS6sCAIlm9Q==
 
-"@octokit/request-error@^3.0.0":
+"@octokit/request-error@^3.0.0", "@octokit/request-error@^3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@octokit/request-error/-/request-error-3.0.1.tgz#3fd747913c06ab2195e52004a521889dadb4b295"
   integrity sha512-ym4Bp0HTP7F3VFssV88WD1ZyCIRoE8H35pXSKwLeMizcdZAYc/t6N9X9Yr9n6t3aG9IH75XDnZ6UeZph0vHMWQ==

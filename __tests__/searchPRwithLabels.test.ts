@@ -24,6 +24,9 @@ test('search PR with Labels no found', async () => {
 })
 
 test('search PR with Labels error', async () => {
-    const issue = await searchPRwithLabels(nooctokit, repoName, owner, ['test'])
-    expect(issue).toBeUndefined()
+    try {
+        await searchPRwithLabels(nooctokit, repoName, owner, ['test'])
+    } catch (error) {
+        expect(error).toHaveProperty('status', 401)
+    }
 })
