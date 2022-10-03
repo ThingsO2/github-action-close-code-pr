@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import { Octokit } from "@octokit/core"
-import { RequestError } from "@octokit/request-error"
 import { getLabels } from './getLabels'
 import { searchPRwithLabels } from './searchPRwithLabels'
 import { searchCodePR } from './searchCodePR'
@@ -61,7 +60,7 @@ try {
         auth: process.env.GITHUB_TOKEN
     })
 
-    main(octokit, { prNumber, repoName, owner }, false)
+    main(octokit, { prNumber, repoName, owner }, true)
 } catch (error) {
     core.setFailed(error.message)
 }
