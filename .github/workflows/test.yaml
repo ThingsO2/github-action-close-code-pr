@@ -1,0 +1,60 @@
+name: Test
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: 'node_modules'
+          key: ${{ hashFiles('yarn.lock') }}
+
+      - name: Install
+        run: yarn install --pure-lockfile
+
+      - name: Test
+        run: yarn test --coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.KINGKONG_GITHUB_TOKEN }}
+
+      - name: Get Package Data
+        id: read-package
+        run: |
+          echo ::set-output name=NAME::$(node -p "require('./package.json').name") | sed 's/@monom\///g'
+          echo ::set-output name=VERSION::$(node -p "require('./package.json').version")
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_HOST }}
+        with:
+          args: >
+            -Dsonar.projectKey=front-${{ steps.read-package.outputs.NAME }}
+            -Dsonar.projectName=${{ steps.read-package.outputs.NAME }}
+            -Dsonar.projectVersion=${{ steps.read-package.outputs.VERSION }}
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=src
+            -Dsonar.tests=__tests__
+            -Dsonar.exclusions=src/__mocks__/**.*
+
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+        with:
+          scanMetadataReportFile: .scannerwork/report-task.txt
