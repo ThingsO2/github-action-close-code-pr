@@ -8118,7 +8118,7 @@ try {
     var octokit = new core_1.Octokit({
         auth: process.env.GITHUB_TOKEN
     });
-    main(octokit, { prNumber: prNumber, repoName: repoName, owner: owner }, false);
+    main(octokit, { prNumber: prNumber, repoName: repoName, owner: owner }, true);
 }
 catch (error) {
     core.setFailed(error.message);
