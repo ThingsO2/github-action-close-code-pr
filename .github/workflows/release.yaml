@@ -20,6 +20,7 @@ jobs:
       - name: Analyze commits
         id: next_release_version
         run: |
+          
           npm install --save-dev semantic-release > /dev/null
           sed -i "s#const {isCi, branch, prBranch, isPr} = context.envCi;#const {isCi, branch, prBranch, isPr} = {isCi: false, branch: '${{ github.event.pull_request.head.ref }}', prBranch: undefined, isPr: undefined};#" node_modules/semantic-release/index.js
           echo ::set-output name=TAG::$(npx semantic-release -b ${{ github.event.pull_request.head.ref }}  -p '@semantic-release/commit-analyzer' --dry-run --no-ci | grep -oiP 'the next release version is *\K.*')
@@ -55,4 +56,4 @@ jobs:
         id: release
         uses: cycjimmy/semantic-release-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.KINGKONG_GITHUB_TOKEN }}
