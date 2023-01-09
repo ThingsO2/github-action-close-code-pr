@@ -17,18 +17,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Analyze commits
         id: next_release_version
         run: |
           
-          npm install --save-dev semantic-release > /dev/null
+          npm install --save-dev semantic-release@18 > /dev/null
           sed -i "s#const {isCi, branch, prBranch, isPr} = context.envCi;#const {isCi, branch, prBranch, isPr} = {isCi: false, branch: '${{ github.event.pull_request.head.ref }}', prBranch: undefined, isPr: undefined};#" node_modules/semantic-release/index.js
-          echo ::set-output name=TAG::$(npx semantic-release -b ${{ github.event.pull_request.head.ref }}  -p '@semantic-release/commit-analyzer' --dry-run --no-ci | grep -oiP 'the next release version is *\K.*')
+          echo "TAG=$(npx semantic-release -b ${{ github.event.pull_request.head.ref }}  -p '@semantic-release/commit-analyzer' --dry-run --no-ci | grep -oiP 'the next release version is *\K.*')" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create comment if analyze commits fails
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         if: steps.next_release_version.outputs.TAG == ''
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -39,7 +44,7 @@ jobs:
 
       - name: Cancel if analyze commits fails
         if: steps.next_release_version.outputs.TAG == ''
-        uses: actions/github-script@v3
+        uses: actions/github-script@v6
         with:
           script: |
             core.setFailed("Commits message format don't use Angular Commit Message Conventions and it's necessary to generate the next tag")
@@ -50,10 +55,10 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Semantic Release
         id: release
-        uses: cycjimmy/semantic-release-action@v2
+        uses: cycjimmy/semantic-release-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.KINGKONG_GITHUB_TOKEN }}
