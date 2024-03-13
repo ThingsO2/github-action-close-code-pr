@@ -7,58 +7,7 @@ on:
   push:
     branches:
       - main
-
 jobs:
-  check:
-    name: Check release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Analyze commits
-        id: next_release_version
-        run: |
-          
-          npm install --save-dev semantic-release@18 > /dev/null
-          sed -i "s#const {isCi, branch, prBranch, isPr} = context.envCi;#const {isCi, branch, prBranch, isPr} = {isCi: false, branch: '${{ github.event.pull_request.head.ref }}', prBranch: undefined, isPr: undefined};#" node_modules/semantic-release/index.js
-          echo "TAG=$(npx semantic-release -b ${{ github.event.pull_request.head.ref }}  -p '@semantic-release/commit-analyzer' --dry-run --no-ci | grep -oiP 'the next release version is *\K.*')" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create comment if analyze commits fails
-        uses: peter-evans/create-or-update-comment@v2
-        if: steps.next_release_version.outputs.TAG == ''
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Commits message format don't use Angular Commit Message Conventions and it's necessary to generate the next tag
-
-            https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#-git-commit-guidelines
-
-      - name: Cancel if analyze commits fails
-        if: steps.next_release_version.outputs.TAG == ''
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.setFailed("Commits message format don't use Angular Commit Message Conventions and it's necessary to generate the next tag")
-
-  release:
-    name: Generate release
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Semantic Release
-        id: release
-        uses: cycjimmy/semantic-release-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.KINGKONG_GITHUB_TOKEN }}
+  build:
+    uses: ThingsO2/monom-ci-workflows/.github/workflows/release-workflow.yaml@main
+    secrets: inherit
