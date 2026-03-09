@@ -11,7 +11,7 @@ interface Input {
     owner: string
 }
 
-export async function main(octokit: Octokit, input: Input, merge: boolean): Promise<core.ExitCode>{
+export async function main(octokit: Octokit, input: Input, merge: boolean): Promise<core.ExitCode> {
 
     const prNumber = input.prNumber
     const repoName = input.repoName
@@ -25,14 +25,19 @@ export async function main(octokit: Octokit, input: Input, merge: boolean): Prom
         core.info(`Labels: ${labels}`)
         const labelsToSearch = labels.filter((label) => !label.endsWith("-pro"))
         const PRs = await searchPRwithLabels(octokit, repoName, owner, labelsToSearch)
-        core.info(`PRs: ${PRs}`)
-        if (PRs.length > 0) {
-            core.info('PRs found, nothing to merge')
+        const otherPRs = PRs.filter((id) => id !== prNumber)
+        core.info(`Found PRs: ${PRs}`)
+        if (otherPRs.length > 0) {
+            core.info(`Other open PRs found for these labels: ${otherPRs}. Nothing to merge yet.`)
             return core.ExitCode.Success
         } else {
-            core.info('No PRs found, merge original code PR')
+            core.info('No other open PRs found, proceeding to merge original code PR')
             const codePR = await searchCodePR(octokit, prNumber, repoName, owner)
-            core.info(`Repo: ${codePR.base.repo.name} PR: ${codePR?.number}`)
+            if (!codePR) {
+                core.warning(`Could not identify original code PR for ${repoName}#${prNumber}. Verify title/body format.`)
+                return core.ExitCode.Success
+            }
+            core.info(`Found original PR: ${codePR.base.repo.name}#${codePR.number}`)
             if (merge) {
                 return mergePR(octokit, codePR.number, codePR.base.repo.name, owner).then((mergeResult) => {
                     core.info(`Merge Result: ${mergeResult}`)

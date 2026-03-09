@@ -8059,7 +8059,7 @@ var searchCodePR_1 = __nccwpck_require__(5433);
 var mergePR_1 = __nccwpck_require__(6964);
 function main(octokit, input, merge) {
     return __awaiter(this, void 0, void 0, function () {
-        var prNumber, repoName, owner, labels, labelsToSearch, PRs, codePR, error_1;
+        var prNumber, repoName, owner, labels, labelsToSearch, PRs, otherPRs, codePR, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -8079,16 +8079,21 @@ function main(octokit, input, merge) {
                     return [4 /*yield*/, (0, searchPRwithLabels_1.searchPRwithLabels)(octokit, repoName, owner, labelsToSearch)];
                 case 3:
                     PRs = _a.sent();
-                    core.info("PRs: ".concat(PRs));
-                    if (!(PRs.length > 0)) return [3 /*break*/, 4];
-                    core.info('PRs found, nothing to merge');
+                    otherPRs = PRs.filter(function (id) { return id !== prNumber; });
+                    core.info("Found PRs: ".concat(PRs));
+                    if (!(otherPRs.length > 0)) return [3 /*break*/, 4];
+                    core.info("Other open PRs found for these labels: ".concat(otherPRs, ". Nothing to merge yet."));
                     return [2 /*return*/, core.ExitCode.Success];
                 case 4:
-                    core.info('No PRs found, merge original code PR');
+                    core.info('No other open PRs found, proceeding to merge original code PR');
                     return [4 /*yield*/, (0, searchCodePR_1.searchCodePR)(octokit, prNumber, repoName, owner)];
                 case 5:
                     codePR = _a.sent();
-                    core.info("Repo: ".concat(codePR.base.repo.name, " PR: ").concat(codePR === null || codePR === void 0 ? void 0 : codePR.number));
+                    if (!codePR) {
+                        core.warning("Could not identify original code PR for ".concat(repoName, "#").concat(prNumber, ". Verify title/body format."));
+                        return [2 /*return*/, core.ExitCode.Success];
+                    }
+                    core.info("Found original PR: ".concat(codePR.base.repo.name, "#").concat(codePR.number));
                     if (merge) {
                         return [2 /*return*/, (0, mergePR_1.mergePR)(octokit, codePR.number, codePR.base.repo.name, owner).then(function (mergeResult) {
                                 core.info("Merge Result: ".concat(mergeResult));
@@ -8275,7 +8280,7 @@ exports.searchCodePR = void 0;
 var request_error_1 = __nccwpck_require__(537);
 function searchCodePR(octokit, prNumber, repoName, owner) {
     return __awaiter(this, void 0, void 0, function () {
-        var res, re, match, originalRepoName, originalPrNumber, original;
+        var res, originalRepoName, originalPrNumber, titleRe, titleMatch, bodyRe, bodyMatch, fullRepo, original;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, doRequest(octokit, prNumber, repoName, owner)];
@@ -8285,11 +8290,25 @@ function searchCodePR(octokit, prNumber, repoName, owner) {
                         throw res;
                     }
                     if (!(res.status === 200)) return [3 /*break*/, 3];
-                    re = /^([a-z\-1-9]+)\s([a-z-]+)\s\#pr(\d+)$/;
-                    match = res.data.title.match(re);
-                    if (!match) return [3 /*break*/, 3];
-                    originalRepoName = match[1];
-                    originalPrNumber = parseInt(match[3]);
+                    originalRepoName = void 0;
+                    originalPrNumber = void 0;
+                    titleRe = /^([a-z\-1-9]+)\s([a-z-]+)\s\#pr(\d+)$/;
+                    titleMatch = res.data.title.match(titleRe);
+                    if (titleMatch) {
+                        originalRepoName = titleMatch[1];
+                        originalPrNumber = parseInt(titleMatch[3]);
+                    }
+                    // Try body match (new format: "Triggered by build PR: owner/repo#123")
+                    if (!originalRepoName && res.data.body) {
+                        bodyRe = /Triggered by build PR:.*?([a-zA-Z0-9.\-_/]+)#(\d+)/;
+                        bodyMatch = res.data.body.match(bodyRe);
+                        if (bodyMatch) {
+                            fullRepo = bodyMatch[1];
+                            originalRepoName = fullRepo.includes('/') ? fullRepo.split('/')[1] : fullRepo;
+                            originalPrNumber = parseInt(bodyMatch[2]);
+                        }
+                    }
+                    if (!(originalRepoName && originalPrNumber)) return [3 /*break*/, 3];
                     return [4 /*yield*/, doRequest(octokit, originalPrNumber, originalRepoName, owner)];
                 case 2:
                     original = _a.sent();

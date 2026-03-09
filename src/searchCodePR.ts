@@ -13,11 +13,29 @@ export async function searchCodePR(octokit: Octokit, prNumber: number, repoName:
     }
 
     if (res.status === 200) {
-        const re = /^([a-z\-1-9]+)\s([a-z-]+)\s\#pr(\d+)$/
-        const match = res.data.title.match(re)
-        if (match) {
-            const originalRepoName = match[1]
-            const originalPrNumber = parseInt(match[3])
+        let originalRepoName: string | undefined
+        let originalPrNumber: number | undefined
+
+        // Try title match (old format: "repo-name app-name #pr123")
+        const titleRe = /^([a-z\-1-9]+)\s([a-z-]+)\s\#pr(\d+)$/
+        const titleMatch = res.data.title.match(titleRe)
+        if (titleMatch) {
+            originalRepoName = titleMatch[1]
+            originalPrNumber = parseInt(titleMatch[3])
+        }
+
+        // Try body match (new format: "Triggered by build PR: owner/repo#123")
+        if (!originalRepoName && res.data.body) {
+            const bodyRe = /Triggered by build PR:.*?([a-zA-Z0-9.\-_/]+)#(\d+)/
+            const bodyMatch = res.data.body.match(bodyRe)
+            if (bodyMatch) {
+                const fullRepo = bodyMatch[1]
+                originalRepoName = fullRepo.includes('/') ? fullRepo.split('/')[1] : fullRepo
+                originalPrNumber = parseInt(bodyMatch[2])
+            }
+        }
+
+        if (originalRepoName && originalPrNumber) {
             const original = await doRequest(octokit, originalPrNumber, originalRepoName, owner)
             if (original instanceof RequestError) {
                 throw res
@@ -36,11 +54,11 @@ async function doRequest(octokit: Octokit, prNumber: number, repoName: string, o
     const request = "GET /repos/{owner}/{repo}/pulls/{pull_number}"
 
     try {
-        const {data: res } = await octokit.request(request, {
+        const { data: res } = await octokit.request(request, {
             owner: owner,
             repo: repoName,
             pull_number: prNumber,
-          })
+        })
         return {
             data: res,
             status: 200,
