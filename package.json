@@ -1,6 +1,6 @@
 {
   "name": "github-action-close-code-pr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Close the original code PR when the app is deployed",
   "repository": "git@github.com:ThingsO2/github-action-close-code-pr.git",
   "author": "César M. Cristóbal <cmartin@monom.ai>",
