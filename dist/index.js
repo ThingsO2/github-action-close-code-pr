@@ -8057,9 +8057,10 @@ var getLabels_1 = __nccwpck_require__(7140);
 var searchPRwithLabels_1 = __nccwpck_require__(3595);
 var searchCodePR_1 = __nccwpck_require__(5433);
 var mergePR_1 = __nccwpck_require__(6964);
+var postComment_1 = __nccwpck_require__(5270);
 function main(octokit, input, merge) {
     return __awaiter(this, void 0, void 0, function () {
-        var prNumber, repoName, owner, labels, labelsToSearch, PRs, otherPRs, codePR, error_1;
+        var prNumber, repoName, owner, labels, labelsToSearch, PRs, otherPRs, codePR, actor, message, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -8070,7 +8071,7 @@ function main(octokit, input, merge) {
                     core.info("Repo Name: ".concat(repoName));
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 7, , 8]);
+                    _a.trys.push([1, 10, , 11]);
                     return [4 /*yield*/, (0, getLabels_1.getLabels)(octokit, prNumber, repoName, owner)];
                 case 2:
                     labels = _a.sent();
@@ -8081,14 +8082,24 @@ function main(octokit, input, merge) {
                     PRs = _a.sent();
                     otherPRs = PRs.filter(function (id) { return id !== prNumber; });
                     core.info("Found PRs: ".concat(PRs));
-                    if (!(otherPRs.length > 0)) return [3 /*break*/, 4];
-                    core.info("Other open PRs found for these labels: ".concat(otherPRs, ". Nothing to merge yet."));
-                    return [2 /*return*/, core.ExitCode.Success];
-                case 4:
-                    core.info('No other open PRs found, proceeding to merge original code PR');
                     return [4 /*yield*/, (0, searchCodePR_1.searchCodePR)(octokit, prNumber, repoName, owner)];
-                case 5:
+                case 4:
                     codePR = _a.sent();
+                    if (!(otherPRs.length > 0)) return [3 /*break*/, 8];
+                    actor = process.env.GITHUB_ACTOR;
+                    message = "".concat(actor ? "@".concat(actor, ": ") : '', "Other open PRs found for these labels: ").concat(otherPRs, ". Nothing to merge yet.");
+                    core.info(message);
+                    if (!codePR) return [3 /*break*/, 6];
+                    return [4 /*yield*/, (0, postComment_1.postComment)(octokit, codePR.number, codePR.base.repo.name, codePR.base.repo.owner.login, message)];
+                case 5:
+                    _a.sent();
+                    return [3 /*break*/, 7];
+                case 6:
+                    core.warning("Could not identify original code PR for ".concat(repoName, "#").concat(prNumber, ". Cannot post comment."));
+                    _a.label = 7;
+                case 7: return [2 /*return*/, core.ExitCode.Success];
+                case 8:
+                    core.info('No other open PRs found, proceeding to merge original code PR');
                     if (!codePR) {
                         core.warning("Could not identify original code PR for ".concat(repoName, "#").concat(prNumber, ". Verify title/body format."));
                         return [2 /*return*/, core.ExitCode.Success];
@@ -8105,12 +8116,12 @@ function main(octokit, input, merge) {
                             })];
                     }
                     return [2 /*return*/, core.ExitCode.Success];
-                case 6: return [3 /*break*/, 8];
-                case 7:
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_1 = _a.sent();
                     core.setFailed(error_1.message);
                     return [2 /*return*/, Promise.resolve(core.ExitCode.Failure)];
-                case 8: return [2 /*return*/];
+                case 11: return [2 /*return*/];
             }
         });
     });
@@ -8216,6 +8227,109 @@ function doRequest(octokit, prNumber, repoName, owner) {
                     return [2 /*return*/, {
                             data: res,
                             status: 200,
+                            url: request,
+                            headers: {}
+                        }];
+                case 3:
+                    error_1 = _a.sent();
+                    return [2 /*return*/, new request_error_1.RequestError(error_1.message, error_1.status, {
+                            request: error_1.request,
+                            response: error_1.response,
+                        })];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+
+
+/***/ }),
+
+/***/ 5270:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.postComment = void 0;
+var request_error_1 = __nccwpck_require__(537);
+function postComment(octokit, prNumber, repoName, owner, body) {
+    return __awaiter(this, void 0, void 0, function () {
+        var res;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, doRequest(octokit, prNumber, repoName, owner, body)];
+                case 1:
+                    res = _a.sent();
+                    if (res instanceof request_error_1.RequestError) {
+                        throw res;
+                    }
+                    if (res.status === 201) {
+                        return [2 /*return*/, res.data];
+                    }
+                    return [2 /*return*/, undefined];
+            }
+        });
+    });
+}
+exports.postComment = postComment;
+function doRequest(octokit, prNumber, repoName, owner, body) {
+    return __awaiter(this, void 0, void 0, function () {
+        var request, res, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    request = "POST /repos/{owner}/{repo}/issues/{issue_number}/comments";
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, octokit.request(request, {
+                            owner: owner,
+                            repo: repoName,
+                            issue_number: prNumber,
+                            body: body
+                        })];
+                case 2:
+                    res = (_a.sent()).data;
+                    return [2 /*return*/, {
+                            data: res,
+                            status: 201,
                             url: request,
                             headers: {}
                         }];

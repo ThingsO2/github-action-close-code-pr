@@ -4,6 +4,7 @@ import { getLabels } from './getLabels'
 import { searchPRwithLabels } from './searchPRwithLabels'
 import { searchCodePR } from './searchCodePR'
 import { mergePR } from './mergePR'
+import { postComment } from './postComment'
 
 interface Input {
     prNumber: number
@@ -27,12 +28,21 @@ export async function main(octokit: Octokit, input: Input, merge: boolean): Prom
         const PRs = await searchPRwithLabels(octokit, repoName, owner, labelsToSearch)
         const otherPRs = PRs.filter((id) => id !== prNumber)
         core.info(`Found PRs: ${PRs}`)
+
+        const codePR = await searchCodePR(octokit, prNumber, repoName, owner)
+
         if (otherPRs.length > 0) {
-            core.info(`Other open PRs found for these labels: ${otherPRs}. Nothing to merge yet.`)
+            const actor = process.env.GITHUB_ACTOR
+            const message = `${actor ? `@${actor}: ` : ''}Other open PRs found for these labels: ${otherPRs}. Nothing to merge yet.`
+            core.info(message)
+            if (codePR) {
+                await postComment(octokit, codePR.number, codePR.base.repo.name, codePR.base.repo.owner.login, message)
+            } else {
+                core.warning(`Could not identify original code PR for ${repoName}#${prNumber}. Cannot post comment.`)
+            }
             return core.ExitCode.Success
         } else {
             core.info('No other open PRs found, proceeding to merge original code PR')
-            const codePR = await searchCodePR(octokit, prNumber, repoName, owner)
             if (!codePR) {
                 core.warning(`Could not identify original code PR for ${repoName}#${prNumber}. Verify title/body format.`)
                 return core.ExitCode.Success
