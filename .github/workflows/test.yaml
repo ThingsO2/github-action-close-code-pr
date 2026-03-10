@@ -18,6 +18,11 @@ jobs:
           node-version: '20'
           cache: 'yarn'
 
+      - name: Configure Corporate Nexus
+        run: |
+          echo "//nexus.monom.ai/repository/npm/:_auth=${{ secrets.NEXUS_AUTH }}" > .npmrc
+          echo "registry=https://nexus.monom.ai/repository/npm/" >> .npmrc
+
       - name: Install
         run: yarn install --pure-lockfile
 
